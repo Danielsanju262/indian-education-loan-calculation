@@ -1161,9 +1161,9 @@ input[type="month"].field-input {
   background: var(--text-primary);
   border-radius: var(--r-xl);
   padding: var(--s8);
+  padding-top: calc(var(--s8) + 36px);
   margin-bottom: var(--s6);
   position: relative;
-  overflow: hidden;
 }
 
 .results-hero::before {
@@ -1866,6 +1866,7 @@ input[type="month"].field-input {
 
   .results-hero {
     padding: var(--s5);
+    padding-top: calc(var(--s5) + 36px);
   }
 
   .results-hero-inner {
@@ -2458,6 +2459,7 @@ input[type="month"].field-input {
 
   .results-hero {
     padding: var(--s4);
+    padding-top: calc(var(--s4) + 36px);
   }
 
   .hero-metric-label {
