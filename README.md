@@ -2,9 +2,6 @@
 
 A specialized education loan simulator designed for Indian students. Understand exactly how interest accrues during your course, how disbursements affect your balance, and how pre-payments can save you lakhs in interest.
 
-## 🚀 Live Demo
-*(Click "Edit" on this line to add your deployment URL later)*
-
 ## ✨ Key Features
 
 - **Accurate Indian Math**: Uses the Indian comma system (₹10,00,000) and calculates interest based on actual disbursed amounts, not just the total sanctioned limit.
