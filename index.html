@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LoanLens — Education Loan Clarity</title>
+  <meta name="description"
+    content="Understand exactly what you pay and why. Simulate education loan disbursements, moratorium interest, and EMI repayment with crystal-clear breakdowns." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap"
+    rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+</head>
+
+<body>
+  <div class="app" id="app">
+
+    <!-- ── NAVIGATION ── -->
+    <nav class="nav" id="main-nav">
+      <div class="nav-inner">
+        <div class="nav-brand">
+          <span class="nav-logo">🎓</span>
+          <span class="nav-title">LoanLens</span>
+        </div>
+        <div class="nav-steps" id="nav-steps">
+          <button class="step-pill active" data-step="1" id="nav-step-1">
+            <span class="step-num">1</span>
+            <span class="step-label">Loan Details</span>
+          </button>
+          <div class="step-connector"></div>
+          <button class="step-pill" data-step="2" id="nav-step-2">
+            <span class="step-num">2</span>
+            <span class="step-label">Disbursements</span>
+          </button>
+          <div class="step-connector"></div>
+          <button class="step-pill" data-step="3" id="nav-step-3">
+            <span class="step-num">3</span>
+            <span class="step-label">During Course</span>
+          </button>
+          <div class="step-connector"></div>
+          <button class="step-pill" data-step="4" id="nav-step-4">
+            <span class="step-num">4</span>
+            <span class="step-label">Results</span>
+          </button>
+        </div>
+      </div>
+      <button class="btn-history-open" id="btn-history-open" title="View saved calculations">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="1.8"
+            stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        History
+      </button>
+  </div>
+  </nav>
+
+  <!-- ── HISTORY DRAWER ── -->
+  <div class="history-overlay" id="history-overlay" style="display:none" aria-modal="true" role="dialog">
+    <div class="history-drawer" id="history-drawer">
+      <div class="history-header">
+        <div class="history-title-row">
+          <span class="history-icon">🕐</span>
+          <h2 class="history-title">Saved Calculations</h2>
+        </div>
+        <button class="btn-history-close" id="btn-history-close" aria-label="Close history">✕</button>
+      </div>
+      <p class="history-sub">Saved only on this browser. Load any calculation to view it again exactly as you left it.
+      </p>
+      <div class="history-list" id="history-list">
+        <div class="history-empty" id="history-empty">
+          <div class="history-empty-icon">📭</div>
+          <p>No saved calculations yet</p>
+          <span>After running a calculation, you can optionally save it with a name.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <header class="hero" id="hero-section">
+    <div class="hero-inner">
+      <span class="hero-badge">Education Loan Simulator</span>
+      <h1 class="hero-title">Understand every<br><em>rupee</em> you pay</h1>
+      <p class="hero-sub">See exactly how interest accrues, why your EMI is what it is, and how pre-payments save you
+        money — broken down step by step.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hstat-icon">🏦</span>
+          <span class="hstat-text">Works with all banks</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hstat-icon">📅</span>
+          <span class="hstat-text">Course + 6–12 month moratorium</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hstat-icon">💡</span>
+          <span class="hstat-text">Explains each component</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main">
+
+    <!-- ════════════════ STEP 1: LOAN DETAILS ════════════════ -->
+    <section class="step-section active" id="step-1">
+      <div class="step-header">
+        <div class="step-badge">Step 1 of 3</div>
+        <h2 class="step-title">Basic Loan Details</h2>
+        <p class="step-desc">These are the core parameters your bank approves. Every EMI and interest calculation
+          flows from these numbers.</p>
+      </div>
+
+      <div class="insight-banner" id="insight-banner-1">
+        <span class="insight-icon">💡</span>
+        <div class="insight-content">
+          <strong>How banks structure education loans:</strong>
+          The bank sanctions a maximum amount. Money is released in tranches (disbursements) as your fees fall due —
+          not all at once. Interest is charged only on what's actually released.
+        </div>
+      </div>
+
+      <div class="fields-grid">
+        <!-- Sanctioned Amount -->
+        <div class="field-card" id="fc-sanctioned">
+          <div class="field-top">
+            <div class="field-icon-wrap accent-blue">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.8" />
+                <path d="M2 10h20" stroke="currentColor" stroke-width="1.8" />
+                <circle cx="7" cy="15" r="1" fill="currentColor" />
+              </svg>
+            </div>
+            <div>
+              <label class="field-label" for="sanctioned-amount">Sanctioned Amount</label>
+              <span class="field-why">The maximum the bank will lend you</span>
+            </div>
+          </div>
+          <div class="input-wrap">
+            <span class="input-prefix">₹</span>
+            <input type="number" id="sanctioned-amount" class="field-input" placeholder="20,00,000" min="0"
+              step="10000" />
+          </div>
+        </div>
+
+        <!-- Interest Rate -->
+        <div class="field-card" id="fc-rate">
+          <div class="field-top">
+            <div class="field-icon-wrap accent-orange">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                  stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div>
+              <label class="field-label" for="interest-rate">Annual Interest Rate</label>
+              <span class="field-why">This is why your balance grows during the course</span>
+            </div>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="interest-rate" class="field-input" placeholder="9.5" min="0" max="30"
+              step="0.05" />
+            <span class="input-suffix">% per year</span>
+          </div>
+          <div class="field-math" id="monthly-rate-display"></div>
+        </div>
+
+        <!-- EMI Tenure -->
+        <div class="field-card" id="fc-tenure">
+          <div class="field-top">
+            <div class="field-icon-wrap accent-green">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8" />
+                <path d="M3 9h18M9 4v5M15 4v5" stroke="currentColor" stroke-width="1.8" />
+              </svg>
+            </div>
+            <div>
+              <label class="field-label" for="tenure">EMI Tenure</label>
+              <span class="field-why">How many months you repay after the moratorium</span>
+            </div>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="tenure" class="field-input" placeholder="120" min="1" max="360" />
+            <span class="input-suffix">months</span>
+          </div>
+          <div class="field-math" id="tenure-years-display"></div>
+        </div>
+
+
+      </div>
+
+      <!-- MORATORIUM SECTION -->
+      <div class="subsection">
+        <div class="subsection-header">
+          <h3 class="subsection-title">Course &amp; Moratorium Period</h3>
+          <div class="tooltip-wrap">
+            <button class="tooltip-btn" aria-label="What is moratorium?">?</button>
+            <div class="tooltip-box">
+              <strong>What is a moratorium?</strong><br>
+              A "repayment holiday" — you don't pay EMIs while studying. Interest accrues on disbursed
+              amounts starting from the month after each disbursement. The moratorium covers your course period plus a
+              grace period (usually +6 or +12 months). EMI starts after the moratorium ends.
+            </div>
+          </div>
+        </div>
+        <p class="subsection-desc">Course start and moratorium start are the same. Set the moratorium end to your
+          course end + 6 or 12 months (varies by bank). Disbursements can happen even before the course start.</p>
+
+        <div class="moratorium-visual" id="moratorium-visual">
+          <div class="mor-timeline">
+            <div class="mor-phase course-phase">
+              <span class="mor-phase-label">Moratorium</span>
+              <span class="mor-phase-sub">Course + grace period · No EMIs · Interest accrues</span>
+            </div>
+            <div class="mor-arrow">→</div>
+            <div class="mor-phase emi-phase">
+              <span class="mor-phase-label">EMI Starts</span>
+              <span class="mor-phase-sub">Full repayment begins the month after moratorium ends</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fields-grid mt-sm">
+          <div class="field-card">
+            <div class="field-top">
+              <div class="field-icon-wrap accent-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M22 10v9a2 2 0 01-2 2H4a2 2 0 01-2-2v-9" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="1.8"
+                    stroke-linejoin="round" />
+                  <path d="M2 7v10M22 7v10" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+              </div>
+              <div>
+                <label class="field-label" for="moratorium-start">Course / Moratorium Start</label>
+                <span class="field-why">When your course begins (= moratorium start)</span>
+              </div>
+            </div>
+            <div class="input-wrap">
+              <input type="month" id="moratorium-start" class="field-input" />
+            </div>
+          </div>
+          <div class="field-card">
+            <div class="field-top">
+              <div class="field-icon-wrap accent-red">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M12 8v8M8 12l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </div>
+              <div>
+                <label class="field-label" for="moratorium-end">Moratorium Ends</label>
+                <span class="field-why">EMI starts the month after this date</span>
+              </div>
+            </div>
+            <div class="input-wrap">
+              <input type="month" id="moratorium-end" class="field-input" />
+            </div>
+          </div>
+        </div>
+
+        <div class="moratorium-calc-hint" id="moratorium-calc-hint"></div>
+      </div>
+
+      <div class="step-footer">
+        <button class="btn-next" id="btn-step1-next">
+          Continue to Disbursements
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 8h8M9 5l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ════════════════ STEP 2: DISBURSEMENTS ════════════════ -->
+    <section class="step-section" id="step-2">
+      <div class="step-header">
+        <div class="step-badge">Step 2 of 3</div>
+        <h2 class="step-title">Disbursement Schedule</h2>
+        <p class="step-desc">Banks release money in installments — usually each semester or year. Disbursements can
+          happen even before the course starts. Interest starts accruing from the <strong>next month</strong> after
+          each disbursement.</p>
+      </div>
+
+      <div class="insight-banner" id="insight-banner-2">
+        <span class="insight-icon">💡</span>
+        <div class="insight-content">
+          <strong>Why disbursements matter:</strong>
+          If ₹5L is released in Jan and ₹5L in Aug, you pay interest on only ₹5L for those 7 months — not the full
+          ₹10L. Getting disbursements later saves interest during moratorium.
+        </div>
+      </div>
+
+      <!-- Sanctioned limit bar -->
+      <div class="limit-bar-wrap">
+        <div class="limit-bar-header">
+          <span class="limit-label">Disbursed vs. Sanctioned</span>
+          <span class="limit-amounts">
+            <span id="disbursed-total-disp">₹0</span>
+            <span class="limit-sep">of</span>
+            <span id="sanctioned-disp">₹0</span>
+          </span>
+        </div>
+        <div class="limit-bar-track">
+          <div class="limit-bar-fill" id="limit-bar-fill"></div>
+        </div>
+        <div class="limit-remaining-text" id="limit-remaining-text">Enter sanctioned amount in Step 1 first</div>
+      </div>
+
+      <!-- ADD DISBURSEMENT PANEL -->
+      <div class="add-disb-panel">
+        <!-- Tab switcher -->
+        <div class="disb-tabs" id="disb-tabs">
+          <button class="disb-tab active" id="tab-manual" data-tab="manual">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            Manual Entry
+          </button>
+          <button class="disb-tab" id="tab-recurring" data-tab="recurring">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Recurring / Spread
+          </button>
+        </div>
+
+        <!-- Manual tab: existing add button -->
+        <div class="disb-tab-pane" id="disb-pane-manual">
+          <button class="btn-add-row" id="add-disbursement">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            Add Single Disbursement
+          </button>
+        </div>
+
+        <!-- Recurring tab: spread configuration -->
+        <div class="disb-tab-pane" id="disb-pane-recurring" style="display:none">
+          <div class="recurring-config">
+            <div class="recurring-config-title">
+              <span class="rc-icon">🔄</span>
+              Spread a fixed amount across recurring intervals
+            </div>
+            <p class="recurring-hint">Set a <strong>start</strong> and <strong>end</strong> date, pick a frequency,
+              and enter the total amount. Equal instalments are generated at each interval within the date range.
+              You can do this as many times as you want to build up any schedule.</p>
+
+            <div class="rc-fields">
+              <!-- Total amount -->
+              <div class="rc-field">
+                <label class="rc-label" for="rc-total-amount">Total Amount to Disburse (₹)</label>
+                <div class="rc-input-wrap">
+                  <span class="rc-prefix">₹</span>
+                  <input type="number" id="rc-total-amount" class="rc-input" placeholder="e.g. 10,00,000" min="0"
+                    step="5000" />
+                </div>
+                <div class="amount-words" id="rc-total-words"></div>
+              </div>
+
+              <!-- Start date -->
+              <div class="rc-field">
+                <label class="rc-label" for="rc-start-date">Start Month (first instalment)</label>
+                <div class="rc-input-wrap">
+                  <input type="month" id="rc-start-date" class="rc-input" />
+                </div>
+              </div>
+
+              <!-- End date -->
+              <div class="rc-field">
+                <label class="rc-label" for="rc-end-date">End Month (last instalment on or before)</label>
+                <div class="rc-input-wrap">
+                  <input type="month" id="rc-end-date" class="rc-input" />
+                </div>
+              </div>
+
+              <!-- Frequency -->
+              <div class="rc-field rc-field-full">
+                <label class="rc-label" for="rc-frequency">Frequency (every N months)</label>
+                <div class="rc-input-wrap rc-select-wrap">
+                  <select id="rc-frequency" class="rc-input rc-select">
+                    <option value="1">Every month (1 month)</option>
+                    <option value="2">Every 2 months</option>
+                    <option value="3">Every 3 months (quarterly)</option>
+                    <option value="4">Every 4 months</option>
+                    <option value="5">Every 5 months</option>
+                    <option value="6">Every 6 months (semi-annual)</option>
+                    <option value="7">Every 7 months</option>
+                    <option value="8">Every 8 months</option>
+                    <option value="9">Every 9 months</option>
+                    <option value="10">Every 10 months</option>
+                    <option value="11">Every 11 months</option>
+                    <option value="12">Every 12 months (annual)</option>
+                  </select>
+                </div>
+                <div class="rc-count-hint" id="rc-count-hint"></div>
+              </div>
+            </div>
+
+            <!-- Preview button -->
+            <button class="btn-rc-preview" id="btn-rc-preview">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+              </svg>
+              Preview Instalments
+            </button>
+
+            <!-- Preview table -->
+            <div class="rc-preview" id="rc-preview" style="display:none">
+              <div class="rc-preview-header">
+                <span class="rc-preview-title" id="rc-preview-title">Preview</span>
+                <span class="rc-preview-badge" id="rc-preview-badge"></span>
+              </div>
+              <div class="table-scroll rc-preview-scroll">
+                <table class="rc-preview-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Month</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rc-preview-tbody"></tbody>
+                </table>
+              </div>
+              <button class="btn-rc-add" id="btn-rc-add">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                Add These Disbursements
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Disbursement rows list -->
+      <div class="disbursements-list" id="disbursements-list">
+        <!-- rows injected by JS -->
+      </div>
+      <div class="empty-state" id="disbursement-empty">
+        <div class="empty-icon">📥</div>
+        <p>No disbursements added yet</p>
+        <span>Add each semester/year fee release from the bank</span>
+      </div>
+
+      <div class="step-footer two-col">
+        <button class="btn-back" id="btn-step2-back">← Back</button>
+        <button class="btn-next" id="btn-step2-next">
+          Continue to Course Payments
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 8h8M9 5l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ════════════════ STEP 3: DURING MORATORIUM ════════════════ -->
+    <section class="step-section" id="step-3">
+      <div class="step-header">
+        <div class="step-badge">Step 3 of 3</div>
+        <h2 class="step-title">During the Moratorium</h2>
+        <p class="step-desc">Even though you're not paying EMIs, money isn't free — interest accrues every month.
+          Here's how to configure it.</p>
+      </div>
+
+      <!-- Simple Interest Config -->
+      <div class="config-block">
+        <div class="config-block-header">
+          <div class="config-block-icon accent-orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2v20M2 12h20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="config-block-title">Interest During Moratorium</h3>
+            <p class="config-block-desc">Some banks ask you to pay simple interest monthly during the moratorium. This
+              reduces the amount added to your principal at EMI start. Interest is calculated only on disbursed
+              amounts, starting the month after each disbursement.</p>
+          </div>
+        </div>
+
+        <div class="insight-banner accent-orange-tint">
+          <span class="insight-icon">🧮</span>
+          <div class="insight-content">
+            <strong>Formula:</strong> Monthly interest = (Outstanding principal × Annual rate%) ÷ 12 (charged from the
+            month after each disbursement)<br>
+            <strong>Impact:</strong> If you pay this out of pocket each month, your EMI after moratorium will be
+            <em>significantly lower</em> because no interest gets added to principal.
+          </div>
+        </div>
+
+        <div class="si-options" id="si-options">
+          <label class="si-card" id="si-none-card">
+            <input type="radio" name="si-type" value="none" checked />
+            <div class="si-card-content">
+              <div class="si-card-icon">🚫</div>
+              <div class="si-card-title">No payment</div>
+              <div class="si-card-desc">Interest accrues and gets added to principal at EMI start</div>
+            </div>
+          </label>
+          <label class="si-card" id="si-formula-card">
+            <input type="radio" name="si-type" value="formula" />
+            <div class="si-card-content">
+              <div class="si-card-icon">📐</div>
+              <div class="si-card-title">Formula-based SI</div>
+              <div class="si-card-desc">Pay (disbursed × rate ÷ 12) each month. Saves on EMI later.</div>
+            </div>
+          </label>
+          <label class="si-card" id="si-custom-card">
+            <input type="radio" name="si-type" value="custom" />
+            <div class="si-card-content">
+              <div class="si-card-icon">✏️</div>
+              <div class="si-card-title">Fixed amount</div>
+              <div class="si-card-desc">Bank specifies a fixed monthly payment during moratorium</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="si-custom-wrap" id="si-custom-group" style="display:none">
+          <div class="field-card inline">
+            <label class="field-label" for="si-custom-amount">Monthly SI Amount</label>
+            <div class="input-wrap">
+              <span class="input-prefix">₹</span>
+              <input type="number" id="si-custom-amount" class="field-input" placeholder="e.g. 8,000" min="0"
+                step="500" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pre-payments config -->
+      <div class="config-block">
+        <div class="config-block-header">
+          <div class="config-block-icon accent-green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 20V4M5 11l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="config-block-title">Pre-payments During Moratorium</h3>
+            <p class="config-block-desc">Optional lump-sum payments you can make anytime during the moratorium. They
+              first clear accrued interest, then reduce your outstanding principal — directly shrinking your future
+              EMI.</p>
+          </div>
+        </div>
+
+        <div class="prepayments-list" id="prepayments-list"></div>
+        <div class="empty-state compact" id="prepayment-empty">
+          <div class="empty-icon">💸</div>
+          <p>No pre-payments planned</p>
+          <span>Optional — add if you can make lump-sum payments during study period</span>
+        </div>
+        <button class="btn-add-row secondary" id="add-prepayment">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          Add Pre-payment
+        </button>
+      </div>
+
+      <div class="step-footer two-col">
+        <button class="btn-back" id="btn-step3-back">← Back</button>
+        <button class="btn-calculate" id="btn-calculate">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M9 19l-5-5 5-5M20 19l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          Calculate My Loan
+        </button>
+      </div>
+
+      <div class="error-message" id="error-message" style="display:none"></div>
+    </section>
+
+    <!-- ════════════════ STEP 4: RESULTS ════════════════ -->
+    <section class="step-section" id="step-4" style="display:none">
+
+      <!-- SAVE CALCULATION CARD -->
+      <div class="save-calc-card" id="save-calc-card">
+        <div class="save-calc-left">
+          <span class="save-calc-icon">💾</span>
+          <div>
+            <div class="save-calc-title">Save this calculation</div>
+            <div class="save-calc-desc">Give it a name and access it anytime from History — no account needed.</div>
+          </div>
+        </div>
+        <div class="save-calc-right">
+          <div class="save-calc-input-row">
+            <input type="text" id="save-calc-name" class="save-calc-input" placeholder="e.g. SBI Loan 20L @ 9.5%"
+              maxlength="80" />
+            <button class="btn-save-calc" id="btn-save-calc">Save</button>
+          </div>
+          <div class="save-calc-feedback" id="save-calc-feedback"></div>
+        </div>
+      </div>
+
+      <!-- HERO NUMBERS -->
+      <div class="results-hero">
+        <div class="results-hero-inner" id="results-hero-inner">
+          <!-- Populated by JS -->
+        </div>
+        <button class="btn-edit" id="btn-edit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2"
+              stroke-linejoin="round" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"
+              stroke-linejoin="round" />
+          </svg>
+          Edit Inputs
+        </button>
+      </div>
+
+      <!-- PAYMENT BREAKDOWN EXPLAINER -->
+      <div class="breakdown-explainer" id="breakdown-explainer">
+        <h3 class="breakdown-title">Where your money goes</h3>
+        <div class="breakdown-bar-wrap">
+          <div class="breakdown-bar" id="breakdown-bar">
+            <!-- segments added by JS -->
+          </div>
+          <div class="breakdown-legend" id="breakdown-legend"></div>
+        </div>
+      </div>
+
+      <!-- KEY METRICS GRID -->
+      <div class="metrics-grid" id="metrics-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- PHASE PANELS -->
+      <div class="phase-panels">
+        <!-- MORATORIUM PANEL -->
+        <div class="phase-panel" id="moratorium-panel">
+          <div class="phase-panel-header">
+            <div class="phase-panel-icon accent-orange">📅</div>
+            <div class="phase-panel-info">
+              <h3 class="phase-panel-title">Moratorium Period</h3>
+              <p class="phase-panel-desc" id="moratorium-panel-desc">Loading…</p>
+            </div>
+            <button class="phase-toggle" id="toggle-moratorium" aria-expanded="false">
+              <svg class="toggle-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="phase-panel-body" id="moratorium-table-wrapper" style="display:none">
+            <div class="table-explainer">
+              Monthly interest = (Outstanding principal × <span id="rate-display-1">rate</span>) ÷ 12.
+              If unpaid, it adds to your balance carried into EMI phase.
+            </div>
+            <div class="table-scroll">
+              <table class="data-table" id="moratorium-table">
+                <thead>
+                  <tr>
+                    <th class="col-left">Month</th>
+                    <th>Disbursement<div class="th-sub">Money released</div>
+                    </th>
+                    <th>Principal Balance<div class="th-sub">What you owe</div>
+                    </th>
+                    <th>Monthly Interest<div class="th-sub">Cost this month</div>
+                    </th>
+                    <th>Accrued Interest<div class="th-sub">Running unpaid interest</div>
+                    </th>
+                    <th>SI Payment<div class="th-sub">You paid (optional)</div>
+                    </th>
+                    <th>Pre-payment<div class="th-sub">Lump-sum paid</div>
+                    </th>
+                    <th>Running Balance<div class="th-sub">Total outstanding</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="moratorium-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMI PANEL -->
+        <div class="phase-panel" id="emi-panel">
+          <div class="phase-panel-header">
+            <div class="phase-panel-icon accent-blue">💳</div>
+            <div class="phase-panel-info">
+              <h3 class="phase-panel-title">EMI Repayment Schedule</h3>
+              <p class="phase-panel-desc" id="emi-panel-desc">Loading…</p>
+            </div>
+            <button class="phase-toggle" id="toggle-emi" aria-expanded="false">
+              <svg class="toggle-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="phase-panel-body" id="emi-table-wrapper" style="display:none">
+            <div class="table-explainer">
+              EMI = P × r × (1+r)ⁿ / ((1+r)ⁿ – 1). Each month: interest portion decreases, principal portion increases
+              — your outstanding balance falls steadily.
+            </div>
+            <div class="emi-split-visual" id="emi-split-visual">
+              <div class="esv-item">
+                <span class="esv-label">Month 1 split</span>
+                <div class="esv-bar">
+                  <div class="esv-interest" id="esv-interest-1"></div>
+                  <div class="esv-principal" id="esv-principal-1"></div>
+                </div>
+              </div>
+              <div class="esv-item">
+                <span class="esv-label">Mid-point split</span>
+                <div class="esv-bar">
+                  <div class="esv-interest" id="esv-interest-mid"></div>
+                  <div class="esv-principal" id="esv-principal-mid"></div>
+                </div>
+              </div>
+              <div class="esv-item">
+                <span class="esv-label">Last month split</span>
+                <div class="esv-bar">
+                  <div class="esv-interest" id="esv-interest-last"></div>
+                  <div class="esv-principal" id="esv-principal-last"></div>
+                </div>
+              </div>
+              <div class="esv-legend">
+                <span><span class="dot orange"></span>Interest</span>
+                <span><span class="dot green"></span>Principal</span>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table" id="emi-table">
+                <thead>
+                  <tr>
+                    <th class="col-left">#</th>
+                    <th class="col-left">Month</th>
+                    <th>EMI<div class="th-sub">Total paid</div>
+                    </th>
+                    <th>Interest<div class="th-sub">Cost portion</div>
+                    </th>
+                    <th>Principal<div class="th-sub">Debt reduction</div>
+                    </th>
+                    <th>Balance<div class="th-sub">Remaining loan</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="emi-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WHAT-IF SECTION -->
+      <div class="whatif-section" id="whatif-section">
+        <div class="whatif-header">
+          <div class="whatif-icon">🔮</div>
+          <div>
+            <h3 class="whatif-title">What if I make a pre-payment?</h3>
+            <p class="whatif-desc">See how a lump-sum payment during moratorium would reduce your total interest
+              burden</p>
+          </div>
+        </div>
+        <div class="whatif-inputs">
+          <div class="field-card inline">
+            <label class="field-label" for="whatif-amount">Pre-payment Amount</label>
+            <div class="input-wrap">
+              <span class="input-prefix">₹</span>
+              <input type="number" id="whatif-amount" class="field-input" placeholder="e.g. 2,00,000" min="0"
+                step="10000" />
+            </div>
+          </div>
+          <div class="field-card inline">
+            <label class="field-label" for="whatif-month">Payment Month</label>
+            <div class="input-wrap">
+              <input type="month" id="whatif-month" class="field-input" />
+            </div>
+          </div>
+          <button class="btn-whatif" id="btn-whatif">Compare →</button>
+        </div>
+        <div class="whatif-result" id="whatif-result" style="display:none">
+          <div class="comparison-cards" id="comparison-grid"></div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>LoanLens — Built for students to make sense of their education loans</p>
+    <p class="footer-note">Calculations are indicative. Actual amounts may vary by bank terms and processing.</p>
+  </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
