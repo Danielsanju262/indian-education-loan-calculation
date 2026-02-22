@@ -1,4 +1,3 @@
-import './style.css';
 import { runSimulation, formatCurrency, formatCurrencyExact, formatMonthYear } from './loanEngine.js';
 import { supabase } from './supabase.js';
 
