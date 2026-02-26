@@ -24,7 +24,8 @@
       <div class="nav-inner">
         <div class="nav-brand">
           <span class="nav-logo">🎓</span>
-          <span class="nav-title">LoanLens</span>
+          <span class="nav-title">LoanLens <span class="nav-version"
+              style="font-size: 0.5em; background: var(--green); color: white; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px;">v2.0</span></span>
         </div>
         <div class="nav-steps" id="nav-steps">
           <button class="step-pill active" data-step="1" id="nav-step-1">
@@ -286,8 +287,8 @@
         <div class="step-badge">Step 2 of 3</div>
         <h2 class="step-title">Disbursement Schedule</h2>
         <p class="step-desc">Banks release money in installments — usually each semester or year. Disbursements can
-          happen even before the course starts. Interest starts accruing from the <strong>next month</strong> after
-          each disbursement.</p>
+          happen even before the course starts. Interest starts accruing <strong>immediately</strong> upon each
+          disbursement.</p>
       </div>
 
       <div class="insight-banner" id="insight-banner-2">
@@ -487,16 +488,16 @@
           <div>
             <h3 class="config-block-title">Interest During Moratorium</h3>
             <p class="config-block-desc">Some banks ask you to pay simple interest monthly during the moratorium. This
-              reduces the amount added to your principal at EMI start. Interest is calculated only on disbursed
-              amounts, starting the month after each disbursement.</p>
+              reduces the amount added to your principal at EMI start. Interest is calculated on disbursed
+              amounts and any unpaid capitalized interest, starting IMMEDIATELY.</p>
           </div>
         </div>
 
         <div class="insight-banner accent-orange-tint">
           <span class="insight-icon">🧮</span>
           <div class="insight-content">
-            <strong>Formula:</strong> Monthly interest = (Outstanding principal × Annual rate%) ÷ 12 (charged from the
-            month after each disbursement)<br>
+            <strong>Formula:</strong> Monthly interest = (Outstanding principal & unpaid interest × Annual rate%) ÷ 12
+            (charged immediately from the month of each disbursement)<br>
             <strong>Impact:</strong> If you pay this out of pocket each month, your EMI after moratorium will be
             <em>significantly lower</em> because no interest gets added to principal.
           </div>

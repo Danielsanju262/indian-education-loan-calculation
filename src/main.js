@@ -767,8 +767,8 @@ function renderResults(result) {
                        <td><span class="bd-badge blue">D${br.id}</span></td>
                        <td>${br.disbDate}</td>
                        <td class="bd-amount">${formatCurrency(br.principal)}</td>
-                       <td class="bd-formula">${br.isNewThisMonth ? '<em style="color:var(--teal)">Disbursed this month — interest starts next month</em>' : `${formatCurrency(br.principal)} × ${rate}% ÷ 12`}</td>
-                       <td class="bd-interest">${br.isNewThisMonth ? '—' : formatCurrencyExact(br.interest)}</td>
+                       <td class="bd-formula">${`${formatCurrency(br.principal)} × ${rate}% ÷ 12`}</td>
+                       <td class="bd-interest">${formatCurrencyExact(br.interest)}</td>
                        <td class="bd-cum">${formatCurrencyExact(br.cumInterest)}</td>
                      </tr>
                   `).join('')}

@@ -146,21 +146,7 @@ export function generateMoratoriumSchedule(
     activeDisb.forEach(d => {
       if (d.activePrincipal <= 0 && d.cumUnpaidInterest <= 0) return;
 
-      // Skip interest if this disbursement was made THIS month
-      if (d.disbMonthKey === currentMonthKey) {
-        disbBreakdown.push({
-          id: d.id,
-          disbDate: formatMonthYear(new Date(d.date)),
-          principal: d.activePrincipal + d.cumUnpaidInterest,
-          interest: 0,
-          cumInterest: d.cumInterest,
-          rate: annualRate,
-          isNewThisMonth: true,
-        });
-        return;
-      }
-
-      // Interest generated on the compounded loan balance!
+      // Interest generated on the compounded loan balance instantly in the same month
       const intForDisb = (d.activePrincipal + d.cumUnpaidInterest) * r;
       d.cumInterest += intForDisb;
       disbBreakdown.push({
@@ -170,7 +156,7 @@ export function generateMoratoriumSchedule(
         interest: intForDisb,
         cumInterest: d.cumInterest,
         rate: annualRate,
-        isNewThisMonth: false,
+        isNewThisMonth: d.disbMonthKey === currentMonthKey,
       });
       monthInterest += intForDisb;
     });
