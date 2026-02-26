@@ -104,6 +104,7 @@ export function generateMoratoriumSchedule(
       ...d,
       activePrincipal: 0,
       cumInterest: 0,
+      cumUnpaidInterest: 0,
       disbMonthKey: `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`,
     };
   });
@@ -139,19 +140,18 @@ export function generateMoratoriumSchedule(
     });
 
     // ── 2. Per-disbursement interest this month ──
-    // Interest is charged ONLY if the disbursement happened in a PREVIOUS month
-    // (i.e., NOT the same month of disbursement)
+    // Compounding: Interest is calculated on (activePrincipal + cumUnpaidInterest)
     let monthInterest = 0;
     const disbBreakdown = [];
     activeDisb.forEach(d => {
-      if (d.activePrincipal <= 0) return;
+      if (d.activePrincipal <= 0 && d.cumUnpaidInterest <= 0) return;
+
       // Skip interest if this disbursement was made THIS month
       if (d.disbMonthKey === currentMonthKey) {
-        // Show in breakdown but with 0 interest for transparency
         disbBreakdown.push({
           id: d.id,
           disbDate: formatMonthYear(new Date(d.date)),
-          principal: d.activePrincipal,
+          principal: d.activePrincipal + d.cumUnpaidInterest,
           interest: 0,
           cumInterest: d.cumInterest,
           rate: annualRate,
@@ -159,12 +159,14 @@ export function generateMoratoriumSchedule(
         });
         return;
       }
-      const intForDisb = d.activePrincipal * r;
+
+      // Interest generated on the compounded loan balance!
+      const intForDisb = (d.activePrincipal + d.cumUnpaidInterest) * r;
       d.cumInterest += intForDisb;
       disbBreakdown.push({
         id: d.id,
         disbDate: formatMonthYear(new Date(d.date)),
-        principal: d.activePrincipal,
+        principal: d.activePrincipal + d.cumUnpaidInterest,
         interest: intForDisb,
         cumInterest: d.cumInterest,
         rate: annualRate,
@@ -172,11 +174,9 @@ export function generateMoratoriumSchedule(
       });
       monthInterest += intForDisb;
     });
-    accruedInterest += monthInterest;
     totalInterestAccrued += monthInterest;
 
-    // ── 3. SI payment this month ──
-    // SI is only charged when there is actual interest to pay
+    // ── 3. SI (PMII) payment this month ──
     let siPayment = 0;
     if (siOption.type === 'formula') {
       siPayment = monthInterest; // pay exactly the interest accrued this month
@@ -184,28 +184,72 @@ export function generateMoratoriumSchedule(
       siPayment = siOption.customAmount || 0;
     }
 
-    // SI reduces accrued interest (pro-rata across disbursements)
     let siBreakdown = [];
     let actualSIPaid = 0;
-    if (siPayment > 0 && accruedInterest > 0) {
-      const actualSI = Math.min(siPayment, accruedInterest);
-      actualSIPaid = actualSI;
-      totalSIPaid += actualSI;
-      accruedInterest -= actualSI;
 
-      // Attribute SI deduction pro-rata to each disbursement's share
+    if (siPayment > 0) {
+      actualSIPaid = siPayment;
+      totalSIPaid += actualSIPaid;
+      let remainingSI = actualSIPaid;
+
+      // 1. Pay this month's interest first
       if (monthInterest > 0) {
+        const toPayThisMonth = Math.min(remainingSI, monthInterest);
         disbBreakdown.forEach(br => {
           if (br.interest <= 0) return;
           const share = br.interest / monthInterest;
+          const paidForThisDisb = toPayThisMonth * share;
           siBreakdown.push({
             id: br.id,
             disbDate: br.disbDate,
-            siApplied: actualSI * share,
+            siApplied: paidForThisDisb,
           });
+
+          const disb = activeDisb.find(d => d.id === br.id);
+          const unpaidForThisDisb = br.interest - paidForThisDisb;
+          disb.cumUnpaidInterest += unpaidForThisDisb;
+        });
+        remainingSI -= toPayThisMonth;
+      }
+
+      // 2. Pay down PREVIOUS capitalized interest if there's remaining SI
+      if (remainingSI > 0) {
+        let totalCapitalized = activeDisb.reduce((s, d) => s + d.cumUnpaidInterest, 0);
+        if (totalCapitalized > 0) {
+          const toReduceCap = Math.min(remainingSI, totalCapitalized);
+          activeDisb.forEach(d => {
+            if (d.cumUnpaidInterest <= 0) return;
+            const share = d.cumUnpaidInterest / totalCapitalized;
+            d.cumUnpaidInterest -= toReduceCap * share;
+          });
+          remainingSI -= toReduceCap;
+        }
+      }
+
+      // 3. Pay down PRINCIPAL if there's STILL remaining SI (acting as prepayment)
+      if (remainingSI > 0) {
+        let totalPrincip = activeDisb.reduce((s, d) => s + d.activePrincipal, 0);
+        if (totalPrincip > 0) {
+          activeDisb.forEach(d => {
+            if (d.activePrincipal <= 0) return;
+            const share = d.activePrincipal / totalPrincip;
+            d.activePrincipal -= remainingSI * share;
+            outstandingPrincipal -= remainingSI * share;
+          });
+        }
+      }
+    } else {
+      // SI is 0. All interest becomes unpaid and capitalized.
+      if (monthInterest > 0) {
+        disbBreakdown.forEach(br => {
+          if (br.interest <= 0) return;
+          const disb = activeDisb.find(d => d.id === br.id);
+          disb.cumUnpaidInterest += br.interest;
         });
       }
     }
+
+    accruedInterest = activeDisb.reduce((s, d) => s + d.cumUnpaidInterest, 0);
 
     // ── 4. Pre-payments this month ──
     let monthPrePayment = 0;
@@ -215,23 +259,38 @@ export function generateMoratoriumSchedule(
         monthPrePayment += p.amount;
       }
     });
+
     if (monthPrePayment > 0) {
       totalPrePayments += monthPrePayment;
-      // First clear accrued interest, then reduce principal
-      if (monthPrePayment <= accruedInterest) {
-        accruedInterest -= monthPrePayment;
-      } else {
-        const remainder = monthPrePayment - accruedInterest;
-        accruedInterest = 0;
-        // Reduce principal proportionally across disbursements
-        let remaining = remainder;
-        for (let i = activeDisb.length - 1; i >= 0 && remaining > 0; i--) {
-          const reduce = Math.min(activeDisb[i].activePrincipal, remaining);
-          activeDisb[i].activePrincipal -= reduce;
-          outstandingPrincipal -= reduce;
-          remaining -= reduce;
+      let remainingPrePay = monthPrePayment;
+
+      // First clear capitalized interest
+      let totalCap = activeDisb.reduce((s, d) => s + d.cumUnpaidInterest, 0);
+      if (totalCap > 0 && remainingPrePay > 0) {
+        const reduceCap = Math.min(remainingPrePay, totalCap);
+        activeDisb.forEach(d => {
+          if (d.cumUnpaidInterest <= 0) return;
+          const share = d.cumUnpaidInterest / totalCap;
+          d.cumUnpaidInterest -= reduceCap * share;
+        });
+        remainingPrePay -= reduceCap;
+      }
+
+      // Then reduce principal
+      if (remainingPrePay > 0) {
+        let totalPrincip = activeDisb.reduce((s, d) => s + d.activePrincipal, 0);
+        if (totalPrincip > 0) {
+          activeDisb.forEach(d => {
+            if (d.activePrincipal <= 0) return;
+            const share = d.activePrincipal / totalPrincip;
+            const reducePrincipal = remainingPrePay * share;
+            d.activePrincipal -= reducePrincipal;
+            outstandingPrincipal -= reducePrincipal;
+          });
         }
       }
+
+      accruedInterest = activeDisb.reduce((s, d) => s + d.cumUnpaidInterest, 0);
     }
 
     schedule.push({
